@@ -47,10 +47,20 @@ if (process.env.REPRO_SCHEMES === "custom") {
 
 function configureSession(ses) {
   if (process.env.REPRO_UA === "modified") {
-    const ua = ses
-      .getUserAgent()
-      .replace(/Electron\/[\d.]+ /, "")
-      .concat("");
+    // Reproduce T3 Code's current (broken) behaviour: strip the Electron token.
+    const ua = ses.getUserAgent().replace(/Electron\/[\d.]+ /, "");
+    ses.setUserAgent(ua);
+  }
+  if (process.env.REPRO_UA === "noop") {
+    // Call setUserAgent with the UA UNCHANGED. If Turnstile fails here too, the
+    // override call itself (which drops/mismatches Client Hints) is the trigger,
+    // not the string content.
+    ses.setUserAgent(ses.getUserAgent());
+  }
+  if (process.env.REPRO_UA === "appstrip") {
+    // Proposed fix: strip only the app product token that sits before "Chrome/",
+    // KEEP the Electron token so the UA stays consistent with the Client Hints.
+    const ua = ses.getUserAgent().replace(/\s\S+\/\S+(?=\sChrome\/)/, "");
     ses.setUserAgent(ua);
   }
   if (process.env.REPRO_PERMS === "grant") {
@@ -66,6 +76,7 @@ app.whenReady().then(() => {
   // default session and (if used) the custom partition session.
   configureSession(session.defaultSession);
   if (PARTITION) configureSession(session.fromPartition(PARTITION));
+  console.error("FINAL_UA:", JSON.stringify(session.defaultSession.getUserAgent()));
 
   const win = new BrowserWindow({
     width: 1000,
