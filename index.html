@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Turnstile webview repro</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+      webview {
+        width: 100vw;
+        height: 100vh;
+        border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      // Optionally put the guest in a persistent partition (REPRO_PARTITION=custom),
+      // matching T3 Code. Read the partition from the loadFile query string.
+      const params = new URLSearchParams(location.search);
+      const partition = params.get("partition");
+      const wv = document.createElement("webview");
+      wv.setAttribute("src", "https://dash.cloudflare.com/login");
+      if (partition) wv.setAttribute("partition", partition);
+      document.body.appendChild(wv);
+    </script>
+  </body>
+</html>

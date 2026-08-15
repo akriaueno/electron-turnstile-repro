@@ -1,0 +1,13 @@
+{
+  "name": "electron-turnstile-repro",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Minimal Electron reproduction for Cloudflare Turnstile error 600010 inside an embedded <webview> (vs a plain BrowserWindow).",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "41.5.0"
+  }
+}
