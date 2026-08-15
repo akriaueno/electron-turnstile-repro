@@ -90,7 +90,10 @@ app.whenReady().then(() => {
     win.loadURL(TARGET_URL);
   } else {
     win.loadFile(path.join(__dirname, "index.html"), {
-      query: PARTITION ? { partition: PARTITION } : {},
+      query: {
+        ...(PARTITION ? { partition: PARTITION } : {}),
+        ...(process.env.REPRO_URL ? { src: process.env.REPRO_URL } : {}),
+      },
     });
   }
 });

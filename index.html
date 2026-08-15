@@ -9,11 +9,20 @@
         margin: 0;
         height: 100%;
         overflow: hidden;
+        font: 12px monospace;
       }
       webview {
         width: 100vw;
-        height: 100vh;
+        height: 55vh;
         border: 0;
+      }
+      pre {
+        margin: 0;
+        padding: 4px;
+        height: 43vh;
+        overflow: auto;
+        border-top: 2px solid #333;
+        white-space: pre-wrap;
       }
     </style>
   </head>
@@ -23,10 +32,35 @@
       // matching T3 Code. Read the partition from the loadFile query string.
       const params = new URLSearchParams(location.search);
       const partition = params.get("partition");
+      const src = params.get("src") || "https://dash.cloudflare.com/login";
       const wv = document.createElement("webview");
-      wv.setAttribute("src", "https://dash.cloudflare.com/login");
+      wv.setAttribute("src", src);
       if (partition) wv.setAttribute("partition", partition);
       document.body.appendChild(wv);
+
+      // Diagnostic pane: dump what the GUEST page actually observes, so each
+      // mode's navigator.userAgent / navigator.userAgentData pair is on record.
+      const out = document.createElement("pre");
+      out.textContent = "(waiting for guest dom-ready...)";
+      document.body.appendChild(out);
+      wv.addEventListener("dom-ready", () => {
+        wv.executeJavaScript(
+          `(async () => ({
+             userAgent: navigator.userAgent,
+             userAgentData: navigator.userAgentData ? navigator.userAgentData.toJSON() : null,
+             highEntropy: navigator.userAgentData
+               ? await navigator.userAgentData.getHighEntropyValues(["fullVersionList", "platformVersion", "uaFullVersion"])
+               : null,
+           }))()`,
+        ).then(
+          (r) => {
+            out.textContent = "GUEST NAVIGATOR DUMP\n" + JSON.stringify(r, null, 1);
+          },
+          (e) => {
+            out.textContent = "dump failed: " + e;
+          },
+        );
+      });
     </script>
   </body>
 </html>
